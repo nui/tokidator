@@ -1,9 +1,10 @@
 use std::hash::Hash;
+use std::ops::Deref;
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
-pub use validator::AccessTokenValidator;
-pub use validator::AccessValidator;
+pub use validator::AccessEnforcer;
+pub use validator::ValidationAuthority;
 
 use crate::policy::{PolicyCount, PolicySet};
 
@@ -16,13 +17,14 @@ pub trait PolicyAccessToken: Sized {
     fn from_bytes(buf: &[u8]) -> Option<Self>;
 }
 
-pub trait TokenExtractor {
-    fn extract_access_token(&self) -> Option<&str>;
+pub trait ToTokenStr {
+    fn to_str(&self) -> Option<&str>;
 }
 
-impl TokenExtractor for Option<&str> {
-    fn extract_access_token(&self) -> Option<&str> {
-        *self
+impl<T> ToTokenStr for Option<T>
+    where T: Deref<Target=str> {
+    fn to_str(&self) -> Option<&str> {
+        self.as_deref()
     }
 }
 

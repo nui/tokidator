@@ -8,15 +8,15 @@ use crate::crypto::PublicKey;
 use crate::error::Error;
 use crate::message::SignedMessage;
 use crate::policy::{PolicyCondition, PolicyCount};
-use crate::token::{PolicyAccessToken, TokenExtractor};
+use crate::token::{PolicyAccessToken, ToTokenStr};
 
-pub struct AccessTokenValidator<P, F, A, E> {
+pub struct ValidationAuthority<P, F, A, E> {
     public_key: PublicKey,
     access_token_factory: F,
     _p: PhantomData<(P, A, E)>,
 }
 
-impl<P, F, A, E> AccessTokenValidator<P, F, A, E>
+impl<P, F, A, E> ValidationAuthority<P, F, A, E>
     where P: Hash + Eq + FromPrimitive + ToPrimitive + PolicyCount,
           F: Fn(&[u8]) -> Option<A>,
           A: PolicyAccessToken<Policy=P> {
@@ -46,8 +46,8 @@ impl<P, F, A, E> AccessTokenValidator<P, F, A, E>
         }
     }
 
-    pub fn verify_token(&self, condition: PolicyCondition<P>, token: impl TokenExtractor) -> Result<A, Error> {
-        let token = token.extract_access_token().ok_or(Error::Unauthorized)?;
+    pub fn enforce(&self, condition: PolicyCondition<P>, token: impl ToTokenStr) -> Result<A, Error> {
+        let token = token.to_str().ok_or(Error::Unauthorized)?;
         let access_token = self.decode_verify_check_expiration(token)?;
         // check if policies from access token satisfy required condition
         if condition.satisfy(access_token.policies()) {
@@ -57,20 +57,20 @@ impl<P, F, A, E> AccessTokenValidator<P, F, A, E>
         }
     }
 
-    pub fn to_access_validator(&self, token: impl TokenExtractor) -> Result<AccessValidator<P, A, E>, Error> {
-        let token = token.extract_access_token().ok_or(Error::Unauthorized)?;
+    pub fn to_access_enforcer(&self, token: impl ToTokenStr) -> Result<AccessEnforcer<P, A, E>, Error> {
+        let token = token.to_str().ok_or(Error::Unauthorized)?;
         self.decode_verify_check_expiration(token)
-            .map(AccessValidator::new)
+            .map(AccessEnforcer::new)
     }
 }
 
 #[derive(Clone)]
-pub struct AccessValidator<P, A, E> {
+pub struct AccessEnforcer<P, A, E> {
     access_token: A,
     _p: PhantomData<(P, E)>,
 }
 
-impl<P, A, E> AccessValidator<P, A, E>
+impl<P, A, E> AccessEnforcer<P, A, E>
     where P: Hash + Eq + FromPrimitive + ToPrimitive + PolicyCount,
           A: PolicyAccessToken<Policy=P> {
     pub fn new(access_token: A) -> Self {
@@ -84,7 +84,7 @@ impl<P, A, E> AccessValidator<P, A, E>
         self.access_token
     }
 
-    pub fn verify_access(&self, condition: impl Into<PolicyCondition<P>>) -> Result<&A, Error> {
+    pub fn enforce(&self, condition: impl Into<PolicyCondition<P>>) -> Result<&A, Error> {
         let condition = condition.into();
         if condition.satisfy(self.access_token.policies()) {
             Ok(&self.access_token)
@@ -115,15 +115,15 @@ mod tests {
         create_access_token_with_key(token, &private_key)
     }
 
-    fn make_validator() -> AccessTokenValidator<TestPolicy, fn(&[u8]) -> Option<TestAccessToken>, TestAccessToken, Error> {
-        AccessTokenValidator::new(PublicKey::from_base64_encoded(&get_test_public_key()).unwrap(), TestAccessToken::from_bytes)
+    fn make_va() -> ValidationAuthority<TestPolicy, fn(&[u8]) -> Option<TestAccessToken>, TestAccessToken, Error> {
+        ValidationAuthority::new(PublicKey::from_base64_encoded(&get_test_public_key()).unwrap(), TestAccessToken::from_bytes)
     }
 
     #[test]
     fn test_no_token() {
-        let validator = make_validator();
+        let va = make_va();
 
-        let x = validator.verify_token(NoCheck, None);
+        let x = va.enforce(NoCheck, None::<&str>);
         assert!(x.is_err());
         match x.unwrap_err() {
             Unauthorized => (),
@@ -133,8 +133,8 @@ mod tests {
 
     #[test]
     fn test_bad_token() {
-        let validator = make_validator();
-        let x = validator.verify_token(NoCheck, Some("123"));
+        let va = make_va();
+        let x = va.enforce(NoCheck, Some("123"));
         assert!(x.is_err());
         match x.unwrap_err() {
             BadSignedMessageEncoding => (),
@@ -147,12 +147,12 @@ mod tests {
         let private_key_other = PrivateKey::from_base64_encoded("B1H3hDtRa0K0XxPC2tjD8uj2Tx3i9RlsQ7jSpl4OOIY").unwrap();
         let _public_key_other = PublicKey::from_base64_encoded("uneKfdOZUuupqMK7q1KwPFluM9zxpdIlyNntF4V1Dgs").unwrap();
 
-        let validator = make_validator();
+        let va = make_va();
 
         let token = TestAccessToken::new(vec![Policy1, Policy2].into(), false);
         let access_token = create_access_token_with_key(token, &private_key_other);
 
-        let x = validator.verify_token(NoCheck, Some(access_token).as_deref());
+        let x = va.enforce(NoCheck, Some(access_token).as_deref());
         assert!(x.is_err());
         match x.unwrap_err() {
             SignatureVerificationFail => (),
@@ -162,10 +162,10 @@ mod tests {
 
     #[test]
     fn test_access_token() {
-        let validator = make_validator();
+        let va = make_va();
 
         let token = create_access_token(TestAccessToken::new(vec![Policy1].into(), true));
-        let x = validator.verify_token(NoCheck, Some(token).as_deref());
+        let x = va.enforce(NoCheck, Some(token).as_deref());
         assert!(x.is_err());
         match x.unwrap_err() {
             ExpiredAccessToken => (),
@@ -173,7 +173,7 @@ mod tests {
         };
 
         let token = create_access_token(TestAccessToken::new(vec![].into(), false));
-        let x = validator.verify_token(Contains(Policy1), Some(token).as_deref());
+        let x = va.enforce(Contains(Policy1), Some(token).as_deref());
         assert!(x.is_err());
         match x.unwrap_err() {
             Forbidden => (),

@@ -1,29 +1,22 @@
-use std::hash::Hash;
 use std::marker::PhantomData;
 use std::str::FromStr;
-
-use num_traits::{FromPrimitive, ToPrimitive};
 
 use crate::crypto::PublicKey;
 use crate::error::Error;
 use crate::message::SignedMessage;
-use crate::policy::{PolicyCondition, PolicyCount};
+use crate::policy::PolicyCondition;
 use crate::token::{PolicyAccessToken, ToTokenStr};
 
-pub struct ValidationAuthority<P, F, A, E> {
+pub struct ValidationAuthority<A> {
     public_key: PublicKey,
-    access_token_factory: F,
-    _p: PhantomData<(P, A, E)>,
+    _p: PhantomData<A>,
 }
 
-impl<P, F, A, E> ValidationAuthority<P, F, A, E>
-    where P: Hash + Eq + FromPrimitive + ToPrimitive + PolicyCount,
-          F: Fn(&[u8]) -> Option<A>,
-          A: PolicyAccessToken<Policy=P> {
-    pub fn new(public_key: PublicKey, access_token_factory: F) -> Self {
+impl<A> ValidationAuthority<A>
+    where A: PolicyAccessToken {
+    pub fn new(public_key: PublicKey) -> Self {
         Self {
             public_key,
-            access_token_factory,
             _p: PhantomData,
         }
     }
@@ -36,7 +29,7 @@ impl<P, F, A, E> ValidationAuthority<P, F, A, E>
             return Err(Error::SignatureVerificationFail);
         }
         // 3. extract access token from payload
-        let access_token: A = (self.access_token_factory)(signed_message.message())
+        let access_token = A::from_bytes(signed_message.message())
             .ok_or(Error::BadPolicyEncoding)?;
         // 4. check if it isn't expired
         if access_token.is_expired() {
@@ -46,7 +39,7 @@ impl<P, F, A, E> ValidationAuthority<P, F, A, E>
         }
     }
 
-    pub fn enforce(&self, condition: PolicyCondition<P>, token: impl ToTokenStr) -> Result<A, Error> {
+    pub fn enforce(&self, condition: PolicyCondition<A::Policy>, token: impl ToTokenStr) -> Result<A, Error> {
         let token = token.to_str().ok_or(Error::Unauthorized)?;
         let access_token = self.decode_verify_check_expiration(token)?;
         // check if policies from access token satisfy required condition
@@ -57,7 +50,7 @@ impl<P, F, A, E> ValidationAuthority<P, F, A, E>
         }
     }
 
-    pub fn to_access_enforcer(&self, token: impl ToTokenStr) -> Result<AccessEnforcer<P, A, E>, Error> {
+    pub fn to_access_enforcer(&self, token: impl ToTokenStr) -> Result<AccessEnforcer<A>, Error> {
         let token = token.to_str().ok_or(Error::Unauthorized)?;
         self.decode_verify_check_expiration(token)
             .map(AccessEnforcer::new)
@@ -65,18 +58,15 @@ impl<P, F, A, E> ValidationAuthority<P, F, A, E>
 }
 
 #[derive(Clone)]
-pub struct AccessEnforcer<P, A, E> {
+pub struct AccessEnforcer<A> {
     access_token: A,
-    _p: PhantomData<(P, E)>,
 }
 
-impl<P, A, E> AccessEnforcer<P, A, E>
-    where P: Hash + Eq + FromPrimitive + ToPrimitive + PolicyCount,
-          A: PolicyAccessToken<Policy=P> {
+impl<A> AccessEnforcer<A>
+    where A: PolicyAccessToken {
     pub fn new(access_token: A) -> Self {
         Self {
             access_token,
-            _p: PhantomData,
         }
     }
 
@@ -84,7 +74,7 @@ impl<P, A, E> AccessEnforcer<P, A, E>
         self.access_token
     }
 
-    pub fn enforce(&self, condition: impl Into<PolicyCondition<P>>) -> Result<&A, Error> {
+    pub fn enforce(&self, condition: impl Into<PolicyCondition<A::Policy>>) -> Result<&A, Error> {
         let condition = condition.into();
         if condition.satisfy(self.access_token.policies()) {
             Ok(&self.access_token)
@@ -100,7 +90,6 @@ mod tests {
     use crate::crypto::tests::{get_test_private_key, get_test_public_key};
     use crate::error::Error::{BadSignedMessageEncoding, ExpiredAccessToken, Forbidden, SignatureVerificationFail, Unauthorized};
     use crate::policy::PolicyCondition::*;
-    use crate::policy::tests::TestPolicy;
     use crate::policy::tests::TestPolicy::{Policy1, Policy2};
     use crate::token::tests::TestAccessToken;
 
@@ -115,8 +104,8 @@ mod tests {
         create_access_token_with_key(token, &private_key)
     }
 
-    fn make_va() -> ValidationAuthority<TestPolicy, fn(&[u8]) -> Option<TestAccessToken>, TestAccessToken, Error> {
-        ValidationAuthority::new(PublicKey::from_base64_encoded(&get_test_public_key()).unwrap(), TestAccessToken::from_bytes)
+    fn make_va() -> ValidationAuthority<TestAccessToken> {
+        ValidationAuthority::new(PublicKey::from_base64_encoded(&get_test_public_key()).unwrap())
     }
 
     #[test]

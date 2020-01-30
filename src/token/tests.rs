@@ -38,7 +38,7 @@ impl PolicyAccessToken for TestAccessToken {
         builder.write_to_bytes().expect("Fail build bytes from test policy")
     }
 
-    fn from_bytes(buf: &[u8]) -> Option<TestAccessToken> {
+    fn from_bytes(buf: &[u8]) -> Option<Self> {
         if let Ok(t) = parse_from_bytes::<crate::protos::TestAccessToken>(buf) {
             if let Ok(ps) = PolicySet::from_bytes(t.policies.as_slice()) {
                 return Some(Self::new(ps, t.expired));

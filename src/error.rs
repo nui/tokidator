@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum Error {
     SignatureVerificationFail,
-    BadPolicyEncoding,
+    BadAccessTokenEncoding,
     BadSignedMessageEncoding,
     Forbidden,
     ExpiredAccessToken,

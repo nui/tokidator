@@ -1,7 +1,7 @@
 [package]
 name = "tokidator"
 description = "Token based authentication framework"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Nui Narongwet <narongwet.m@gmail.com>"]
 edition = "2018"
 publish = true
@@ -12,21 +12,24 @@ keywords = ["token"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[features]
-default = ["strum", "strum_macros"]
-
 [dependencies]
 base64 = "0.11.0"
 bitvec = "0.17.2"
 num-derive = "0.3.0"
 num-traits = "0.2.11"
-ring = "0.16.9"
-strum = { version = "0.17.1", optional = true }
-strum_macros = { version = "0.17.1", optional = true }
+ring = "0.16.11"
 
 [dev-dependencies]
-rand = "0.7.3"
+criterion = "0.3.1"
+lazy_static = "1.4.0"
 protobuf = "2.10.1"
+rand = "0.7.3"
+strum = "0.17.1"
+strum_macros = "0.17.1"
+
+[[bench]]
+name = "benchmarks"
+harness = false
 
 [build-dependencies]
 protobuf-codegen-pure = "2.10.1"

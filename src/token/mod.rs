@@ -1,15 +1,12 @@
-use std::hash::Hash;
 use std::ops::Deref;
-
-use num_traits::{FromPrimitive, ToPrimitive};
 
 pub use validator::AccessEnforcer;
 pub use validator::ValidationAuthority;
 
-use crate::policy::{PolicyCount, PolicySet};
+use crate::rbac::{Policy, PolicySet};
 
 pub trait PolicyAccessToken: Sized {
-    type Policy: Hash + Eq + FromPrimitive + ToPrimitive + PolicyCount;
+    type Policy: Policy;
 
     fn policies(&self) -> &PolicySet<Self::Policy>;
     fn is_expired(&self) -> bool;
@@ -18,12 +15,11 @@ pub trait PolicyAccessToken: Sized {
 }
 
 pub trait ToTokenStr {
-    fn to_str(&self) -> Option<&str>;
+    fn to_token_str(&self) -> Option<&str>;
 }
 
-impl<T> ToTokenStr for Option<T>
-    where T: Deref<Target=str> {
-    fn to_str(&self) -> Option<&str> {
+impl<T: Deref<Target=str>> ToTokenStr for Option<T> {
+    fn to_token_str(&self) -> Option<&str> {
         self.as_deref()
     }
 }

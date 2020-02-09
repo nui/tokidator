@@ -1,7 +1,7 @@
 use protobuf::{Message, parse_from_bytes};
 
-use crate::policy::PolicySet;
-use crate::policy::tests::TestPolicy;
+use crate::rbac::PolicySet;
+use crate::rbac::test_helpers::TestPolicy;
 use crate::token::PolicyAccessToken;
 
 #[derive(Debug)]
@@ -12,10 +12,7 @@ pub struct TestAccessToken {
 
 impl TestAccessToken {
     pub fn new(policies: PolicySet<TestPolicy>, expired: bool) -> TestAccessToken {
-        Self {
-            policies,
-            expired,
-        }
+        Self { policies, expired }
     }
 }
 
@@ -40,9 +37,9 @@ impl PolicyAccessToken for TestAccessToken {
 
     fn from_bytes(buf: &[u8]) -> Option<Self> {
         if let Ok(t) = parse_from_bytes::<crate::protos::TestAccessToken>(buf) {
-            if let Ok(ps) = PolicySet::from_bytes(t.policies.as_slice()) {
-                return Some(Self::new(ps, t.expired));
-            }
+            let ps = PolicySet::parse_from_bytes(t.policies.as_slice())
+                .expect("Bad encoded test policies");
+            return Some(Self::new(ps, t.expired));
         }
         None
     }

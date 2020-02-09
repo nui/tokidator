@@ -3,44 +3,37 @@ use ring::signature::{ED25519, Ed25519KeyPair, UnparsedPublicKey};
 pub struct PrivateKey(Ed25519KeyPair);
 
 impl PrivateKey {
-    pub fn from_bytes(buf: &[u8]) -> Option<Self> {
-        Ed25519KeyPair::from_seed_unchecked(buf)
-            .map(Self)
-            .ok()
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        Ed25519KeyPair::from_seed_unchecked(bytes).map(Self).ok()
     }
 
     pub fn sign(&self, msg: &[u8]) -> Vec<u8> {
         self.0.sign(msg).as_ref().to_vec()
     }
 
-    pub fn from_base64_encoded<T: ?Sized + AsRef<[u8]>>(input: &T) -> Option<Self> {
+    pub fn from_base64<T: ?Sized + AsRef<[u8]>>(input: &T) -> Option<Self> {
         base64::decode_config(input, base64::URL_SAFE_NO_PAD)
             .ok()
             .and_then(|seed| Self::from_bytes(&seed))
     }
 }
 
+#[derive(Clone)]
 pub struct PublicKey(UnparsedPublicKey<Vec<u8>>);
 
 impl PublicKey {
-    pub fn from_bytes(buf: &[u8]) -> Self {
-        Self(UnparsedPublicKey::new(&ED25519, buf.to_vec()))
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        Self(UnparsedPublicKey::new(&ED25519, bytes.to_vec()))
     }
 
-    pub fn from_base64_encoded<T: ?Sized + AsRef<[u8]>>(input: &T) -> Option<Self> {
+    pub fn from_base64<T: ?Sized + AsRef<[u8]>>(input: &T) -> Option<Self> {
         base64::decode_config(input, base64::URL_SAFE_NO_PAD)
             .ok()
-            .map(|buf| Self(UnparsedPublicKey::new(&ED25519, buf)))
+            .map(|bytes| Self(UnparsedPublicKey::new(&ED25519, bytes)))
     }
 
     pub fn verify(&self, message: &[u8], signature: &[u8]) -> bool {
         self.0.verify(message, signature).is_ok()
-    }
-}
-
-impl Clone for PublicKey {
-    fn clone(&self) -> Self {
-        PublicKey(self.0.clone())
     }
 }
 

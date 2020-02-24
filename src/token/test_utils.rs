@@ -36,11 +36,9 @@ impl PolicyAccessToken for TestAccessToken {
     }
 
     fn from_bytes(buf: &[u8]) -> Option<Self> {
-        if let Ok(t) = parse_from_bytes::<crate::protos::TestAccessToken>(buf) {
-            let ps = PolicySet::parse_from_bytes(t.policies.as_slice())
-                .expect("Bad encoded test policies");
-            return Some(Self::new(ps, t.expired));
-        }
-        None
+        let token = parse_from_bytes::<crate::protos::TestAccessToken>(buf).ok()?;
+        let ps = PolicySet::parse_from_bytes(token.policies.as_slice())
+            .expect("Bad encoded test policies");
+        Some(Self::new(ps, token.expired))
     }
 }

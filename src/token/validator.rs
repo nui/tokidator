@@ -99,7 +99,7 @@ mod tests {
     use crate::crypto::tests::{get_test_private_key, get_test_public_key};
     use crate::rbac::PolicyCond::*;
     use crate::rbac::test_helpers::TestPolicy::{Policy1, Policy2};
-    use crate::token::tests::TestAccessToken;
+    use crate::token::test_utils::TestAccessToken;
 
     use super::*;
 

@@ -25,6 +25,6 @@ impl<T: Deref<Target=str>> ToTokenStr for Option<T> {
 }
 
 #[cfg(test)]
-pub mod tests;
+pub mod test_utils;
 
 mod validator;

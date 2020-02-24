@@ -28,8 +28,8 @@ impl PublicKey {
 
     pub fn from_base64<T: ?Sized + AsRef<[u8]>>(input: &T) -> Option<Self> {
         base64::decode_config(input, base64::URL_SAFE_NO_PAD)
-            .ok()
             .map(|bytes| Self(UnparsedPublicKey::new(&ED25519, bytes)))
+            .ok()
     }
 
     pub fn verify(&self, message: &[u8], signature: &[u8]) -> bool {

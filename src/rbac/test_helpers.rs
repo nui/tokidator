@@ -43,17 +43,22 @@ impl Role for TestRole {
     type Policy = TestPolicy;
 
     fn as_policy_set_ref(&self) -> Option<&PolicySet<Self::Policy>> {
-        ROLE_POLICIES_MAP.get(self)
+        POLICIES.get(self)
     }
 }
 
+type RolePoliciesMap = HashMap<TestRole, PolicySet<TestPolicy>>;
+
 lazy_static! {
-    static ref ROLE_POLICIES_MAP: HashMap<TestRole, PolicySet<TestPolicy>> = {
-        use TestPolicy::*;
-        use TestRole::*;
-        let mut m = HashMap::new();
-        m.insert(Role0, vec![Policy0, Policy1].into());
-        m.insert(Role2, vec![Policy3, Policy4].into());
-        m
-    };
+    static ref POLICIES: RolePoliciesMap = create_role_policies();
+}
+
+#[inline]
+fn create_role_policies() -> RolePoliciesMap {
+    use TestPolicy::*;
+    use TestRole::*;
+    vec![
+        (Role0, vec![Policy0, Policy1].into()),
+        (Role2, vec![Policy3, Policy4].into()),
+    ].into_iter().collect()
 }

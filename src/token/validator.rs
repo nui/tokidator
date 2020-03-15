@@ -85,11 +85,11 @@ impl<A: PolicyAccessToken> AccessEnforcer<A> {
 #[cfg(test)]
 macro_rules! assert_auth_error {
     ($result: ident, $err: path) => {
-        assert!($result.is_err());
-        match $result.unwrap_err() {
-            $err => (),
-            _ => panic!("expect {:?}", $err),
-        };
+        match $result {
+            Ok(x) => panic!("expect Err({:?}) but found Ok({:?})", $err, x),
+            Err($err) => (),
+            Err(x) => panic!("expect Err({:?}) but found Err({:?})", $err, x),
+        }
     };
 }
 
@@ -119,7 +119,6 @@ mod tests {
     #[test]
     fn test_no_token() {
         let va = make_va();
-
         let x = va.enforce(NoCheck, None::<&str>);
         assert_auth_error!(x, Unauthorized);
     }

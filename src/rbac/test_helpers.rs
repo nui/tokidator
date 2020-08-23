@@ -1,16 +1,17 @@
 use std::collections::HashMap;
 
+use lazy_static::lazy_static;
 #[allow(unused_imports)]
 use num_derive::{FromPrimitive, ToPrimitive};
 #[allow(unused_imports)]
 use strum_macros::{Display, EnumCount};
 
-use lazy_static::lazy_static;
-
 use crate::rbac::policy_set::PolicySet;
 use crate::rbac::traits::Role;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount)]
+#[derive(
+    Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount,
+)]
 pub enum TestPolicy {
     Policy0,
     Policy1,
@@ -60,5 +61,7 @@ fn create_role_policies() -> RolePoliciesMap {
     vec![
         (Role0, vec![Policy0, Policy1].into()),
         (Role2, vec![Policy3, Policy4].into()),
-    ].into_iter().collect()
+    ]
+    .into_iter()
+    .collect()
 }

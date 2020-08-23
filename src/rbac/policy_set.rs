@@ -32,7 +32,9 @@ impl<P: Policy> PolicySet<P> {
     pub fn to_bytes(&self) -> Vec<u8> {
         const TO_USIZE_ERROR: &str = "Unable to convert Policy to usize";
         let mut bits = BitVec::<Msb0, u8>::new();
-        if let Some(max_discriminant) = self.0.iter()
+        if let Some(max_discriminant) = self
+            .0
+            .iter()
             .map(|p| p.to_usize().expect(TO_USIZE_ERROR))
             .max()
         {
@@ -41,7 +43,8 @@ impl<P: Policy> PolicySet<P> {
             assert_eq!(n_bits % 8, 0);
             bits.resize(n_bits, false);
         };
-        self.0.iter()
+        self.0
+            .iter()
             .fold(bits, |mut bits, p| {
                 let index = p.to_usize().expect(TO_USIZE_ERROR);
                 bits.set(index, true);
@@ -75,7 +78,7 @@ impl<P: Policy> PolicySet<P> {
 }
 
 impl<P: Policy> FromIterator<P> for PolicySet<P> {
-    fn from_iter<I: IntoIterator<Item=P>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = P>>(iter: I) -> Self {
         Self(HashSet::from_iter(iter))
     }
 }

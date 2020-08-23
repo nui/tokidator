@@ -1,7 +1,7 @@
-use protobuf::{Message, parse_from_bytes};
+use protobuf::{parse_from_bytes, Message};
 
-use crate::rbac::PolicySet;
 use crate::rbac::test_helpers::TestPolicy;
+use crate::rbac::PolicySet;
 use crate::token::PolicyAccessToken;
 
 #[derive(Debug)]
@@ -32,7 +32,9 @@ impl PolicyAccessToken for TestAccessToken {
         let mut builder = crate::protos::TestAccessToken::new();
         builder.set_policies(policies);
         builder.set_expired(self.expired);
-        builder.write_to_bytes().expect("Fail build bytes from test policy")
+        builder
+            .write_to_bytes()
+            .expect("Fail build bytes from test policy")
     }
 
     fn from_bytes(buf: &[u8]) -> Option<Self> {

@@ -26,11 +26,11 @@ impl<P: Policy> PolicyCond<P> {
         Contains(policy)
     }
 
-    pub fn all<T: IntoIterator<Item=P>>(iter: T) -> Self {
+    pub fn all<T: IntoIterator<Item = P>>(iter: T) -> Self {
         All(PolicySet::from_iter(iter))
     }
 
-    pub fn any<T: IntoIterator<Item=P>>(iter: T) -> Self {
+    pub fn any<T: IntoIterator<Item = P>>(iter: T) -> Self {
         Any(PolicySet::from_iter(iter))
     }
 }

@@ -1,5 +1,7 @@
+pub use error::Error;
+
 pub mod crypto;
-pub mod error;
+mod error;
 pub mod message;
 pub mod rbac;
 pub mod token;

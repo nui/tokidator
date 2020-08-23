@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 
-use rand::RngCore;
 use rand::rngs::OsRng;
+use rand::RngCore;
 use ring::pbkdf2::{derive, PBKDF2_HMAC_SHA256};
 use ring::signature::{Ed25519KeyPair, KeyPair};
 

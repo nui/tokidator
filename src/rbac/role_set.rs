@@ -2,8 +2,8 @@ use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
-use crate::rbac::PolicySet;
 use crate::rbac::traits::Role;
+use crate::rbac::PolicySet;
 
 pub struct RoleSet<R: Role>(HashSet<R>);
 
@@ -24,7 +24,7 @@ impl<R: Role> RoleSet<R> {
 }
 
 impl<R: Role> FromIterator<R> for RoleSet<R> {
-    fn from_iter<I: IntoIterator<Item=R>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = R>>(iter: I) -> Self {
         Self(HashSet::from_iter(iter))
     }
 }

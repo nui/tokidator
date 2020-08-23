@@ -18,7 +18,7 @@ pub trait ToTokenStr {
     fn to_token_str(&self) -> Option<&str>;
 }
 
-impl<T: Deref<Target=str>> ToTokenStr for Option<T> {
+impl<T: Deref<Target = str>> ToTokenStr for Option<T> {
     fn to_token_str(&self) -> Option<&str> {
         self.as_deref()
     }

@@ -1,12 +1,18 @@
+use protobuf_codegen_pure::{Codegen, Customize};
+
 fn main() {
-    if let Err(e) = protobuf_codegen_pure::run(protobuf_codegen_pure::Args {
-        out_dir: "src/protos",
-        input: &["protos/token.proto"],
-        includes: &["protos"],
-        customize: protobuf_codegen_pure::Customize {
+    if let Err(e) = Codegen::new()
+        .out_dir("src/protos")
+        .inputs(&["protos/token.proto"])
+        .includes(&["protos"])
+        .customize(Customize {
             ..Default::default()
-        },
-    }) {
-        println!("cargo:warning=fail to generate protobuf file from source: {:?}", e);
+        })
+        .run()
+    {
+        println!(
+            "cargo:warning=fail to generate protobuf file from source: {:?}",
+            e
+        );
     }
 }

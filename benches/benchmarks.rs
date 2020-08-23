@@ -1,12 +1,14 @@
 #![allow(unused_variables)]
 
-use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use num_derive::{FromPrimitive, ToPrimitive};
 use strum_macros::{Display, EnumCount};
 
 use tokidator::rbac::json_discriminant_array_to_vec;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount)]
+#[derive(
+    Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount,
+)]
 pub enum TestPolicy {
     Policy0,
     Policy1,

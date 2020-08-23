@@ -95,10 +95,10 @@ macro_rules! assert_auth_error {
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::PrivateKey;
     use crate::crypto::tests::{get_test_private_key, get_test_public_key};
-    use crate::rbac::PolicyCond::*;
+    use crate::crypto::PrivateKey;
     use crate::rbac::test_helpers::TestPolicy::{Policy1, Policy2};
+    use crate::rbac::PolicyCond::*;
     use crate::token::test_utils::TestAccessToken;
 
     use super::*;
@@ -132,8 +132,10 @@ mod tests {
 
     #[test]
     fn test_sign_by_other_keys() {
-        let private_key_other = PrivateKey::from_base64("B1H3hDtRa0K0XxPC2tjD8uj2Tx3i9RlsQ7jSpl4OOIY").unwrap();
-        let _public_key_other = PublicKey::from_base64("uneKfdOZUuupqMK7q1KwPFluM9zxpdIlyNntF4V1Dgs").unwrap();
+        let private_key_other =
+            PrivateKey::from_base64("B1H3hDtRa0K0XxPC2tjD8uj2Tx3i9RlsQ7jSpl4OOIY").unwrap();
+        let _public_key_other =
+            PublicKey::from_base64("uneKfdOZUuupqMK7q1KwPFluM9zxpdIlyNntF4V1Dgs").unwrap();
 
         let va = make_va();
 

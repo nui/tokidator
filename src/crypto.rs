@@ -1,4 +1,4 @@
-use ring::signature::{ED25519, Ed25519KeyPair, UnparsedPublicKey};
+use ring::signature::{Ed25519KeyPair, UnparsedPublicKey, ED25519};
 
 pub struct PrivateKey(Ed25519KeyPair);
 

@@ -5,6 +5,7 @@ use PolicyCond::*;
 use crate::rbac::Policy;
 use crate::rbac::PolicySet;
 
+#[derive(Clone)]
 pub enum PolicyCond<P: Policy> {
     NoCheck,
     Contains(P),

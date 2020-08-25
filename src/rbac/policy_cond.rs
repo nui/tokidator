@@ -9,8 +9,8 @@ use crate::rbac::PolicySet;
 pub enum PolicyCond<P: Policy> {
     NoCheck,
     Contains(P),
-    Any(PolicySet<P>),
-    All(PolicySet<P>),
+    Any(Vec<P>),
+    All(Vec<P>),
 }
 
 impl<P: Policy> PolicyCond<P> {
@@ -28,11 +28,11 @@ impl<P: Policy> PolicyCond<P> {
     }
 
     pub fn all<T: IntoIterator<Item = P>>(iter: T) -> Self {
-        All(PolicySet::from_iter(iter))
+        All(Vec::from_iter(iter))
     }
 
     pub fn any<T: IntoIterator<Item = P>>(iter: T) -> Self {
-        Any(PolicySet::from_iter(iter))
+        Any(Vec::from_iter(iter))
     }
 }
 

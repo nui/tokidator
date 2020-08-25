@@ -1,15 +1,15 @@
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
 use crate::rbac::traits::Role;
 use crate::rbac::PolicySet;
 
-pub struct RoleSet<R: Role>(HashSet<R>);
+pub struct RoleSet<R: Role>(BTreeSet<R>);
 
 impl<R: Role> RoleSet<R> {
     pub fn new() -> Self {
-        Self(HashSet::new())
+        Self(BTreeSet::new())
     }
 
     pub fn to_policy_set(&self) -> PolicySet<R::Policy> {
@@ -25,12 +25,12 @@ impl<R: Role> RoleSet<R> {
 
 impl<R: Role> FromIterator<R> for RoleSet<R> {
     fn from_iter<I: IntoIterator<Item = R>>(iter: I) -> Self {
-        Self(HashSet::from_iter(iter))
+        Self(BTreeSet::from_iter(iter))
     }
 }
 
 impl<R: Role> Deref for RoleSet<R> {
-    type Target = HashSet<R>;
+    type Target = BTreeSet<R>;
 
     fn deref(&self) -> &Self::Target {
         &self.0

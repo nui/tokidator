@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::marker::PhantomData;
 
 use crate::crypto::PublicKey;
@@ -38,13 +39,13 @@ impl<A: PolicyAccessToken> ValidationAuthority<A> {
 
     pub fn enforce(
         &self,
-        condition: impl Into<PolicyCond<A::Policy>>,
+        condition: impl Borrow<PolicyCond<A::Policy>>,
         token: impl ToTokenStr,
     ) -> Result<A, Error> {
         let token = token.to_token_str().ok_or(Unauthorized)?;
         let access_token = self.decode_verify_check_expiration(token)?;
         // check if policies from access token satisfy required condition
-        if condition.into().satisfy(access_token.policies()) {
+        if condition.borrow().satisfy(access_token.policies()) {
             Ok(access_token)
         } else {
             Err(Forbidden)

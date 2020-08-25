@@ -7,7 +7,17 @@ use strum_macros::{Display, EnumCount};
 use tokidator::rbac::json_discriminant_array_to_vec;
 
 #[derive(
-    Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount,
+    Copy,
+    Clone,
+    Debug,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Display,
+    FromPrimitive,
+    ToPrimitive,
+    EnumCount,
 )]
 pub enum TestPolicy {
     Policy0,

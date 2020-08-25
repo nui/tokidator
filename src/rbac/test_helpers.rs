@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use lazy_static::lazy_static;
 #[allow(unused_imports)]
@@ -10,7 +10,17 @@ use crate::rbac::policy_set::PolicySet;
 use crate::rbac::traits::Role;
 
 #[derive(
-    Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive, ToPrimitive, EnumCount,
+    Copy,
+    Clone,
+    Debug,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Display,
+    FromPrimitive,
+    ToPrimitive,
+    EnumCount,
 )]
 pub enum TestPolicy {
     Policy0,
@@ -33,7 +43,7 @@ pub enum TestPolicy {
 
 impl crate::rbac::Policy for TestPolicy {}
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Display, FromPrimitive)]
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Display, FromPrimitive)]
 pub enum TestRole {
     Role0,
     Role1,
@@ -48,7 +58,7 @@ impl Role for TestRole {
     }
 }
 
-type RolePoliciesMap = HashMap<TestRole, PolicySet<TestPolicy>>;
+type RolePoliciesMap = BTreeMap<TestRole, PolicySet<TestPolicy>>;
 
 lazy_static! {
     static ref POLICIES: RolePoliciesMap = create_role_policies();

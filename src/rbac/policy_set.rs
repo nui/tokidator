@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
@@ -8,10 +8,10 @@ use num_traits::FromPrimitive;
 use crate::rbac::Policy;
 
 #[derive(Clone, Debug)]
-pub struct PolicySet<P: Policy>(HashSet<P>);
+pub struct PolicySet<P: Policy>(BTreeSet<P>);
 
 impl<P: Policy> Deref for PolicySet<P> {
-    type Target = HashSet<P>;
+    type Target = BTreeSet<P>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -26,7 +26,7 @@ impl<P: Policy> DerefMut for PolicySet<P> {
 
 impl<P: Policy> PolicySet<P> {
     pub fn new() -> Self {
-        Self(HashSet::new())
+        Self(BTreeSet::new())
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -79,13 +79,13 @@ impl<P: Policy> PolicySet<P> {
 
 impl<P: Policy> FromIterator<P> for PolicySet<P> {
     fn from_iter<I: IntoIterator<Item = P>>(iter: I) -> Self {
-        Self(HashSet::from_iter(iter))
+        Self(BTreeSet::from_iter(iter))
     }
 }
 
 impl<P: Policy> From<Vec<P>> for PolicySet<P> {
     fn from(vec: Vec<P>) -> Self {
-        Self(HashSet::from_iter(vec))
+        Self(BTreeSet::from_iter(vec))
     }
 }
 

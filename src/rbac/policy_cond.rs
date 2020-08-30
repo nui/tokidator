@@ -42,6 +42,12 @@ impl<P: Policy> From<P> for PolicyCond<P> {
     }
 }
 
+impl<P: Policy> AsRef<PolicyCond<P>> for PolicyCond<P> {
+    fn as_ref(&self) -> &PolicyCond<P> {
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::rbac::test_helpers::TestPolicy::{self, *};

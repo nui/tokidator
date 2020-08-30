@@ -39,13 +39,13 @@ impl<A: PolicyAccessToken> ValidationAuthority<A> {
 
     pub fn enforce(
         &self,
-        condition: impl Borrow<PolicyCond<A::Policy>>,
+        condition: impl AsRef<PolicyCond<A::Policy>>,
         token: impl ToTokenStr,
     ) -> Result<A, Error> {
         let token = token.to_token_str().ok_or(Unauthorized)?;
         let access_token = self.decode_verify_check_expiration(token)?;
         // check if policies from access token satisfy required condition
-        if condition.borrow().satisfy(access_token.policies()) {
+        if condition.as_ref().satisfy(access_token.policies()) {
             Ok(access_token)
         } else {
             Err(Forbidden)
@@ -73,9 +73,8 @@ impl<A: PolicyAccessToken> AccessEnforcer<A> {
         self.access_token
     }
 
-    pub fn enforce(&self, condition: impl Into<PolicyCond<A::Policy>>) -> Result<&A, Error> {
-        let condition = condition.into();
-        if condition.satisfy(self.access_token.policies()) {
+    pub fn enforce(&self, condition: impl AsRef<PolicyCond<A::Policy>>) -> Result<&A, Error> {
+        if condition.as_ref().satisfy(self.access_token.policies()) {
             Ok(&self.access_token)
         } else {
             Err(Forbidden)

@@ -18,9 +18,9 @@ pub fn json_discriminant_array_to_vec<T: FromPrimitive>(
     unparsed: &str,
 ) -> Result<Vec<T>, (usize, Vec<T>)> {
     unparsed
-        .trim_start_matches("[")
-        .trim_end_matches("]")
-        .split(",")
+        .trim_start_matches('[')
+        .trim_end_matches(']')
+        .split(',')
         .filter_map(|s: &str| s.trim().parse::<usize>().ok())
         .try_fold(Vec::new(), |mut policies, id| {
             if let Some(p) = T::from_usize(id) {

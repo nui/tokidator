@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use std::marker::PhantomData;
 
 use crate::crypto::PublicKey;

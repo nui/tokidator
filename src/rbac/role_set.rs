@@ -5,11 +5,12 @@ use std::ops::{Deref, DerefMut};
 use crate::rbac::traits::Role;
 use crate::rbac::PolicySet;
 
+#[derive(Default)]
 pub struct RoleSet<R: Role>(BTreeSet<R>);
 
 impl<R: Role> RoleSet<R> {
     pub fn new() -> Self {
-        Self(BTreeSet::new())
+        Self(Default::default())
     }
 
     pub fn to_policy_set(&self) -> PolicySet<R::Policy> {

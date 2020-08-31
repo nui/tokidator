@@ -7,7 +7,7 @@ use num_traits::FromPrimitive;
 
 use crate::rbac::Policy;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct PolicySet<P: Policy>(BTreeSet<P>);
 
 impl<P: Policy> Deref for PolicySet<P> {
@@ -26,7 +26,7 @@ impl<P: Policy> DerefMut for PolicySet<P> {
 
 impl<P: Policy> PolicySet<P> {
     pub fn new() -> Self {
-        Self(BTreeSet::new())
+        Self(Default::default())
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -90,7 +90,7 @@ impl<P: Policy> From<Vec<P>> for PolicySet<P> {
 }
 
 #[inline]
-fn optimum_vec_length(n: usize) -> usize {
+const fn optimum_vec_length(n: usize) -> usize {
     let bits = u8::BITS as usize;
     let rem = n % bits;
     if rem > 0 {

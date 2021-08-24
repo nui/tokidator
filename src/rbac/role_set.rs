@@ -1,6 +1,5 @@
 use std::collections::BTreeSet;
 use std::iter::FromIterator;
-use std::ops::{Deref, DerefMut};
 
 use crate::rbac::traits::Role;
 use crate::rbac::PolicySet;
@@ -16,9 +15,9 @@ impl<R: Role> RoleSet<R> {
     pub fn to_policy_set(&self) -> PolicySet<R::Policy> {
         self.0
             .iter()
-            .flat_map(Role::as_policy_set_ref)
-            .fold(PolicySet::new(), |mut acc, ps| {
-                acc.extend(ps.iter());
+            .map(Role::policies)
+            .fold(PolicySet::new(), |mut acc, policies| {
+                acc.extend(policies.iter().copied());
                 acc
             })
     }
@@ -30,17 +29,9 @@ impl<R: Role> FromIterator<R> for RoleSet<R> {
     }
 }
 
-impl<R: Role> Deref for RoleSet<R> {
-    type Target = BTreeSet<R>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<R: Role> DerefMut for RoleSet<R> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+impl<R: Role> From<Vec<R>> for RoleSet<R> {
+    fn from(v: Vec<R>) -> Self {
+        Self::from_iter(v)
     }
 }
 
@@ -53,7 +44,7 @@ mod tests {
     #[test]
     fn test_role_set_to_policy_set() {
         let mut rs: RoleSet<TestRole> = RoleSet::new();
-        rs.insert(TestRole::Role0);
-        assert_eq!(rs.to_policy_set().len(), 2);
+        rs.0.insert(TestRole::Role0);
+        assert_eq!(rs.to_policy_set().inner().len(), 2);
     }
 }

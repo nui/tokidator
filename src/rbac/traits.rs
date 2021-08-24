@@ -1,13 +1,12 @@
 use num_traits::{FromPrimitive, ToPrimitive};
 
-use super::PolicySet;
+/// A marker trait for enums where variants do not have payloads
+///
+/// ToPrimitive must produce unique value (same value that use in Ord)
+pub trait Policy: Copy + Clone + Ord + FromPrimitive + ToPrimitive {}
 
-pub trait Policy: Copy + Clone + Ord + Eq + FromPrimitive + ToPrimitive {}
-
-pub trait Role: Ord + Eq + FromPrimitive {
+pub trait Role: Ord + FromPrimitive {
     type Policy: Policy;
 
-    fn as_policy_set_ref(&self) -> Option<&PolicySet<Self::Policy>> {
-        None
-    }
+    fn policies(&self) -> &[Self::Policy];
 }

@@ -1,27 +1,23 @@
 use std::collections::BTreeMap;
 
-use lazy_static::lazy_static;
-#[allow(unused_imports)]
-use num_derive::{FromPrimitive, ToPrimitive};
-#[allow(unused_imports)]
-use strum_macros::{Display, EnumCount};
+use once_cell::sync::Lazy;
 
-use crate::rbac::policy_set::PolicySet;
 use crate::rbac::traits::Role;
 
 #[derive(
-    Copy,
     Clone,
+    Copy,
     Debug,
-    Ord,
-    PartialOrd,
     Eq,
+    Ord,
     PartialEq,
-    Display,
-    FromPrimitive,
-    ToPrimitive,
-    EnumCount,
+    PartialOrd,
+    num_derive::FromPrimitive,
+    num_derive::ToPrimitive,
+    strum::Display,
+    strum::EnumCount,
 )]
+#[repr(u16)]
 pub enum TestPolicy {
     Policy0,
     Policy1,
@@ -43,7 +39,9 @@ pub enum TestPolicy {
 
 impl crate::rbac::Policy for TestPolicy {}
 
-#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Display, FromPrimitive)]
+#[derive(
+    Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, num_derive::FromPrimitive, strum::Display,
+)]
 pub enum TestRole {
     Role0,
     Role1,
@@ -53,25 +51,20 @@ pub enum TestRole {
 impl Role for TestRole {
     type Policy = TestPolicy;
 
-    fn as_policy_set_ref(&self) -> Option<&PolicySet<Self::Policy>> {
-        POLICIES.get(self)
+    fn policies(&self) -> &[Self::Policy] {
+        POLICIES.get(self).map(Vec::as_slice).unwrap_or_default()
     }
 }
 
-type RolePoliciesMap = BTreeMap<TestRole, PolicySet<TestPolicy>>;
+type RolePoliciesMap = BTreeMap<TestRole, Vec<TestPolicy>>;
 
-lazy_static! {
-    static ref POLICIES: RolePoliciesMap = create_role_policies();
-}
+static POLICIES: Lazy<RolePoliciesMap> = Lazy::new(create_role_policies);
 
-#[inline]
 fn create_role_policies() -> RolePoliciesMap {
     use TestPolicy::*;
     use TestRole::*;
-    vec![
-        (Role0, vec![Policy0, Policy1].into()),
-        (Role2, vec![Policy3, Policy4].into()),
-    ]
-    .into_iter()
-    .collect()
+    let mut map = RolePoliciesMap::new();
+    map.insert(Role0, vec![Policy0, Policy1]);
+    map.insert(Role2, vec![Policy3, Policy4]);
+    map
 }

@@ -1,7 +1,7 @@
 [package]
 name = "tokidator"
 description = "Token based authentication framework"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Nui Narongwet <narongwet.m@gmail.com>"]
 edition = "2018"
 publish = true
@@ -11,25 +11,24 @@ keywords = ["token"]
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-base64 = "0.12.3"
-bitvec = "0.17.4"
-num-derive = "0.3.2"
-num-traits = "0.2.12"
-ring = "0.16.15"
+base64 = "0.13.0"
+bitvec = "0.20"
+num-derive = "0.3.3"
+num-traits = "0.2.14"
+ring = "0.16.20"
+tracing = "0.1.26"
 
 [dev-dependencies]
-criterion = "0.3.3"
-lazy_static = "1.4.0"
-protobuf = "2.17.0"
-rand = "0.7.3"
-strum = "0.19.2"
-strum_macros = "0.19.2"
+criterion = "0.3.5"
+once_cell = "1.8.0"
+protobuf = "2.25.1"
+rand = "0.8.4"
+strum = { version = "0.21.0", features = ["derive"] }
 
 [[bench]]
 name = "benchmarks"
 harness = false
 
 [build-dependencies]
-protobuf-codegen-pure = "2.17.0"
+protobuf-codegen-pure = "2.25.1"

@@ -3,8 +3,9 @@ use std::marker::PhantomData;
 use crate::crypto::PublicKey;
 use crate::error::Error::{self, *};
 use crate::message::SignedMessage;
-use crate::rbac::PolicyCond;
-use crate::token::{PolicyAccessToken, ToTokenStr};
+use crate::rbac::PolicyCondition;
+
+use super::{PolicyAccessToken, ToTokenStr};
 
 pub struct ValidationAuthority<A> {
     public_key: PublicKey,
@@ -27,7 +28,8 @@ impl<A: PolicyAccessToken> ValidationAuthority<A> {
             return Err(SignatureVerificationFail);
         }
         // 3. extract access token from payload
-        let access_token = A::from_bytes(signed_message.message()).ok_or(BadAccessTokenEncoding)?;
+        let access_token =
+            A::from_bytes(signed_message.message()).map_err(|_| BadAccessTokenEncoding)?;
         // 4. check if it isn't expired
         if access_token.is_expired() {
             Err(ExpiredAccessToken)
@@ -38,7 +40,7 @@ impl<A: PolicyAccessToken> ValidationAuthority<A> {
 
     pub fn enforce(
         &self,
-        condition: impl AsRef<PolicyCond<A::Policy>>,
+        condition: impl AsRef<PolicyCondition<A::Policy>>,
         token: impl ToTokenStr,
     ) -> Result<A, Error> {
         let token = token.to_token_str().ok_or(Unauthorized)?;
@@ -72,7 +74,7 @@ impl<A: PolicyAccessToken> AccessEnforcer<A> {
         self.access_token
     }
 
-    pub fn enforce(&self, condition: impl AsRef<PolicyCond<A::Policy>>) -> Result<&A, Error> {
+    pub fn enforce(&self, condition: impl AsRef<PolicyCondition<A::Policy>>) -> Result<&A, Error> {
         if condition.as_ref().satisfy(self.access_token.policies()) {
             Ok(&self.access_token)
         } else {
@@ -83,12 +85,12 @@ impl<A: PolicyAccessToken> AccessEnforcer<A> {
 
 #[cfg(test)]
 macro_rules! assert_auth_error {
-    ($result: ident, $err: path) => {
-        match $result {
-            Ok(x) => panic!("expect Err({:?}) but found Ok({:?})", $err, x),
-            Err($err) => (),
-            Err(x) => panic!("expect Err({:?}) but found Err({:?})", $err, x),
-        }
+    ($exp:expr, $err:path) => {
+        assert!(
+            matches!($exp, Err($err)),
+            concat!("Expect Err(", stringify!($err), ") but found {:?}"),
+            $exp
+        );
     };
 }
 
@@ -97,7 +99,6 @@ mod tests {
     use crate::crypto::tests::{get_test_private_key, get_test_public_key};
     use crate::crypto::PrivateKey;
     use crate::rbac::test_helpers::TestPolicy::{Policy1, Policy2};
-    use crate::rbac::PolicyCond::*;
     use crate::token::test_utils::TestAccessToken;
 
     use super::*;
@@ -118,14 +119,14 @@ mod tests {
     #[test]
     fn test_no_token() {
         let va = make_va();
-        let x = va.enforce(NoCheck, None::<&str>);
+        let x = va.enforce(PolicyCondition::Nil, None::<&str>);
         assert_auth_error!(x, Unauthorized);
     }
 
     #[test]
     fn test_bad_token() {
         let va = make_va();
-        let x = va.enforce(NoCheck, Some("123"));
+        let x = va.enforce(PolicyCondition::Nil, Some("123"));
         assert_auth_error!(x, BadSignedMessageEncoding);
     }
 
@@ -141,7 +142,7 @@ mod tests {
         let token = TestAccessToken::new(vec![Policy1, Policy2].into(), false);
         let access_token = create_access_token_with_key(token, &private_key_other);
 
-        let x = va.enforce(NoCheck, Some(access_token));
+        let x = va.enforce(PolicyCondition::Nil, Some(access_token));
         assert_auth_error!(x, SignatureVerificationFail);
     }
 
@@ -150,11 +151,11 @@ mod tests {
         let va = make_va();
 
         let token = create_access_token(TestAccessToken::new(vec![Policy1].into(), true));
-        let x = va.enforce(NoCheck, Some(token));
+        let x = va.enforce(PolicyCondition::Nil, Some(token));
         assert_auth_error!(x, ExpiredAccessToken);
 
         let token = create_access_token(TestAccessToken::new(vec![].into(), false));
-        let x = va.enforce(Contains(Policy1), Some(token));
+        let x = va.enforce(PolicyCondition::Contains(Policy1), Some(token));
         assert_auth_error!(x, Forbidden);
     }
 }

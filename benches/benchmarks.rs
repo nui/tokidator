@@ -2,24 +2,23 @@
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use num_derive::{FromPrimitive, ToPrimitive};
-use strum_macros::{Display, EnumCount};
 
 use tokidator::rbac::json_discriminant_array_to_vec;
 
 #[derive(
-    Copy,
     Clone,
+    Copy,
     Debug,
-    Ord,
-    PartialOrd,
     Eq,
+    Ord,
     PartialEq,
-    Display,
-    FromPrimitive,
-    ToPrimitive,
-    EnumCount,
+    PartialOrd,
+    num_derive::FromPrimitive,
+    num_derive::ToPrimitive,
+    strum::Display,
+    strum::EnumCount,
 )]
-pub enum TestPolicy {
+enum TestPolicy {
     Policy0,
     Policy1,
     Policy2,
@@ -38,10 +37,12 @@ pub enum TestPolicy {
     Policy15,
 }
 
-pub fn criterion_benchmark(c: &mut Criterion) {
+fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("json_discriminant_array_to_vec", |b| {
         b.iter(|| {
-            json_discriminant_array_to_vec::<TestPolicy>(black_box("[1, 2, 3, 4, 5, 6, 7, 8]"))
+            json_discriminant_array_to_vec::<TestPolicy>(black_box(
+                "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]",
+            ))
         })
     });
 }

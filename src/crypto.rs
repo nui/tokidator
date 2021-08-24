@@ -16,10 +16,6 @@ impl PrivateKey {
             .ok()
             .and_then(|seed| Self::from_bytes(&seed))
     }
-
-    pub fn dummy() -> Self {
-        Self::from_base64("LTqOJVVt2dtGAAbRhGUm5p1L4yw1UJKIRXalD4V1lhc").unwrap()
-    }
 }
 
 #[derive(Clone)]
@@ -39,28 +35,15 @@ impl PublicKey {
     pub fn verify(&self, message: &[u8], signature: &[u8]) -> bool {
         self.0.verify(message, signature).is_ok()
     }
-
-    pub fn dummy() -> Self {
-        Self::from_base64("NqfvZLnVTKSatLSJlfRvZ2QHcD56A7ADRIHSFfyPoEk").unwrap()
-    }
 }
 
 #[cfg(test)]
 pub mod tests {
-    use super::*;
-
     pub fn get_test_public_key() -> String {
         String::from("y9OTFvZmHe41kMjCYtDd8574bv46CSDKexUKN9R7mgM")
     }
 
     pub fn get_test_private_key() -> String {
         String::from("aMWX1G0p36BRx7YqAJaBJ7hnMDxqIbln0toRQcWQfoA")
-    }
-
-    #[test]
-    fn test_dummy_key() {
-        // Should not panic
-        PublicKey::dummy();
-        PrivateKey::dummy();
     }
 }

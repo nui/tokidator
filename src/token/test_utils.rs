@@ -1,8 +1,9 @@
-use protobuf::{parse_from_bytes, Message};
+use protobuf::Message;
 
 use crate::rbac::test_helpers::TestPolicy;
 use crate::rbac::PolicySet;
-use crate::token::PolicyAccessToken;
+
+use super::PolicyAccessToken;
 
 #[derive(Debug)]
 pub struct TestAccessToken {
@@ -18,6 +19,7 @@ impl TestAccessToken {
 
 impl PolicyAccessToken for TestAccessToken {
     type Policy = TestPolicy;
+    type Error = ();
 
     fn policies(&self) -> &PolicySet<Self::Policy> {
         &self.policies
@@ -37,10 +39,10 @@ impl PolicyAccessToken for TestAccessToken {
             .expect("Fail build bytes from test policy")
     }
 
-    fn from_bytes(buf: &[u8]) -> Option<Self> {
-        let token = parse_from_bytes::<crate::protos::TestAccessToken>(buf).ok()?;
+    fn from_bytes(buf: &[u8]) -> Result<Self, Self::Error> {
+        let token = crate::protos::TestAccessToken::parse_from_bytes(buf).map_err(drop)?;
         let ps = PolicySet::parse_from_bytes(token.policies.as_slice())
             .expect("Bad encoded test policies");
-        Some(Self::new(ps, token.expired))
+        Ok(Self::new(ps, token.expired))
     }
 }

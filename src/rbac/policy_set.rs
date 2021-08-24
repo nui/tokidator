@@ -1,56 +1,55 @@
 use std::collections::BTreeSet;
+use std::fmt::{self, Debug};
 use std::iter::FromIterator;
-use std::ops::{Deref, DerefMut};
 
 use bitvec::prelude::*;
 use num_traits::FromPrimitive;
+use tracing::trace;
 
 use crate::rbac::Policy;
 
-#[derive(Clone, Debug, Default)]
-pub struct PolicySet<P: Policy>(BTreeSet<P>);
+#[derive(Clone)]
+pub struct PolicySet<T>(BTreeSet<T>);
 
-impl<P: Policy> Deref for PolicySet<P> {
-    type Target = BTreeSet<P>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl<T: Debug> Debug for PolicySet<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Debug::fmt(&self.0, f)
     }
 }
 
-impl<P: Policy> DerefMut for PolicySet<P> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+impl<P: Policy> Default for PolicySet<P> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 impl<P: Policy> PolicySet<P> {
     pub fn new() -> Self {
-        Self(Default::default())
+        Self(BTreeSet::new())
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
         const TO_USIZE_ERROR: &str = "Unable to convert Policy to usize";
         let mut bits = BitVec::<Msb0, u8>::new();
-        if let Some(max_discriminant) = self
+        if let Some(max_policy_id) = self
             .0
             .iter()
-            .map(|p| p.to_usize().expect(TO_USIZE_ERROR))
             .max()
+            .map(|p| p.to_usize().expect(TO_USIZE_ERROR))
         {
-            // BitVec length must % 8 = 0 to get correct zero filled bytes
-            let n_bits = optimum_vec_length(max_discriminant + 1); // discriminant start from zero
-            assert_eq!(n_bits % 8, 0);
-            bits.resize(n_bits, false);
-        };
-        self.0
-            .iter()
-            .fold(bits, |mut bits, p| {
+            // Reserve space for every possible policy.
+            let len = max_policy_id + 1;
+            trace!("Max policy id: {}, new length: {}", max_policy_id, len);
+            bits.resize(len, false);
+
+            for p in self.0.iter() {
                 let index = p.to_usize().expect(TO_USIZE_ERROR);
                 bits.set(index, true);
-                bits
-            })
-            .into_vec()
+            }
+        }
+        // We explicitly initialize all bits of vector in order to get correct zero filled bytes.
+        bits.set_uninitialized(false);
+        bits.into_vec()
     }
 
     /// Parse set of policies from encoded bytes
@@ -60,43 +59,59 @@ impl<P: Policy> PolicySet<P> {
     /// If that policies are used on outdated web server, this function will return error result
     /// with known policies.
     pub fn parse_from_bytes(bytes: &[u8]) -> Result<Self, Self> {
-        BitSlice::<Msb0, u8>::from_slice(bytes)
+        bytes
+            .view_bits::<Msb0>()
             .into_iter()
             .enumerate()
-            .filter(|t| *t.1)
-            .try_fold(
-                Self::new(),
-                |mut acc, (index, _)| match FromPrimitive::from_usize(index) {
-                    Some(policy) => {
-                        acc.insert(policy);
-                        Ok(acc)
-                    }
-                    None => Err(acc),
-                },
-            )
+            .filter_map(|(index, bit)| bit.then(|| index))
+            .try_fold(Self::new(), |mut acc, index| {
+                if let Some(policy) = <P as FromPrimitive>::from_usize(index) {
+                    acc.0.insert(policy);
+                    Ok(acc)
+                } else {
+                    Err(acc)
+                }
+            })
+    }
+
+    pub fn iter(&self) -> Iter<P> {
+        Iter {
+            iter: self.0.iter(),
+        }
+    }
+
+    pub(crate) fn inner(&self) -> &BTreeSet<P> {
+        &self.0
     }
 }
 
-impl<P: Policy> FromIterator<P> for PolicySet<P> {
-    fn from_iter<I: IntoIterator<Item = P>>(iter: I) -> Self {
+impl<T: Ord> FromIterator<T> for PolicySet<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         Self(BTreeSet::from_iter(iter))
     }
 }
 
-impl<P: Policy> From<Vec<P>> for PolicySet<P> {
-    fn from(vec: Vec<P>) -> Self {
-        Self(BTreeSet::from_iter(vec))
+impl<T: Ord> From<Vec<T>> for PolicySet<T> {
+    fn from(vec: Vec<T>) -> Self {
+        Self::from_iter(vec)
     }
 }
 
-#[inline]
-const fn optimum_vec_length(n: usize) -> usize {
-    let bits = u8::BITS as usize;
-    let rem = n % bits;
-    if rem > 0 {
-        n + (bits - rem)
-    } else {
-        n
+impl<A: Ord> Extend<A> for PolicySet<A> {
+    fn extend<T: IntoIterator<Item = A>>(&mut self, iter: T) {
+        self.0.extend(iter)
+    }
+}
+
+pub struct Iter<'a, T: 'a> {
+    iter: std::collections::btree_set::Iter<'a, T>,
+}
+
+impl<'a, T: 'a> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
     }
 }
 
@@ -108,42 +123,11 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let mut ps = PolicySet::new();
-        ps.insert(TestPolicy::Policy2);
-        ps.insert(TestPolicy::Policy1);
+        let ps = PolicySet::from(vec![TestPolicy::Policy2, TestPolicy::Policy1]);
         let b1 = ps.to_bytes();
         let b2 = PolicySet::<TestPolicy>::parse_from_bytes(&b1)
             .unwrap()
             .to_bytes();
         assert_eq!(b1, b2);
-    }
-
-    #[test]
-    fn test_optimum_vec_length() {
-        assert_eq!(optimum_vec_length(0), 0);
-        assert_eq!(optimum_vec_length(1), 8);
-        assert_eq!(optimum_vec_length(2), 8);
-        assert_eq!(optimum_vec_length(3), 8);
-        assert_eq!(optimum_vec_length(4), 8);
-        assert_eq!(optimum_vec_length(5), 8);
-        assert_eq!(optimum_vec_length(6), 8);
-        assert_eq!(optimum_vec_length(7), 8);
-        assert_eq!(optimum_vec_length(8), 8);
-        assert_eq!(optimum_vec_length(9), 16);
-        assert_eq!(optimum_vec_length(10), 16);
-        assert_eq!(optimum_vec_length(11), 16);
-        assert_eq!(optimum_vec_length(12), 16);
-        assert_eq!(optimum_vec_length(13), 16);
-        assert_eq!(optimum_vec_length(14), 16);
-        assert_eq!(optimum_vec_length(15), 16);
-        assert_eq!(optimum_vec_length(16), 16);
-        assert_eq!(optimum_vec_length(17), 24);
-        assert_eq!(optimum_vec_length(18), 24);
-        assert_eq!(optimum_vec_length(19), 24);
-        assert_eq!(optimum_vec_length(20), 24);
-        assert_eq!(optimum_vec_length(21), 24);
-        assert_eq!(optimum_vec_length(22), 24);
-        assert_eq!(optimum_vec_length(23), 24);
-        assert_eq!(optimum_vec_length(24), 24);
     }
 }

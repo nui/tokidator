@@ -1,7 +1,7 @@
 [package]
 name = "tokidator"
 description = "Token based authentication framework"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Nui Narongwet <narongwet.m@gmail.com>"]
 edition = "2018"
 publish = true
@@ -13,11 +13,11 @@ keywords = ["token"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 base64 = "0.13.0"
-bitvec = "0.20"
+bitvec = "0.22"
 num-derive = "0.3.3"
 num-traits = "0.2.14"
 ring = "0.16.20"
-tracing = "0.1.26"
+tracing = "0.1.28"
 
 [dev-dependencies]
 criterion = "0.3.5"

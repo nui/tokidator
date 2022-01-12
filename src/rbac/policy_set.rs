@@ -30,7 +30,7 @@ impl<P: Policy> PolicySet<P> {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         const TO_USIZE_ERROR: &str = "Unable to convert Policy to usize";
-        let mut bits = BitVec::<Msb0, u8>::new();
+        let mut bits = BitVec::<u8, Msb0>::new();
         if let Some(max_policy_id) = self
             .0
             .iter()

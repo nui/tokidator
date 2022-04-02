@@ -59,65 +59,65 @@ mod tests {
 
     #[test]
     fn no_should_always_satisfy() {
-        assert!(Condition::Nil.satisfy(&vec![].into()));
-        assert!(Condition::Nil.satisfy(&vec![Policy1].into()));
-        assert!(Condition::Nil.satisfy(&vec![Policy1, Policy2].into()));
+        assert!(Condition::Nil.satisfy(&[].into()));
+        assert!(Condition::Nil.satisfy(&[Policy1].into()));
+        assert!(Condition::Nil.satisfy(&[Policy1, Policy2].into()));
     }
 
     #[test]
     fn contains_should_satisfy() {
-        assert!(Condition::contains(Policy1).satisfy(&vec![Policy1].into()));
-        assert!(Condition::contains(Policy1).satisfy(&vec![Policy1, Policy2].into()));
+        assert!(Condition::contains(Policy1).satisfy(&[Policy1].into()));
+        assert!(Condition::contains(Policy1).satisfy(&[Policy1, Policy2].into()));
     }
 
     #[test]
     fn contains_should_not_satisfy() {
-        assert!(!Condition::contains(Policy1).satisfy(&vec![].into()));
-        assert!(!Condition::contains(Policy1).satisfy(&vec![Policy2].into()));
+        assert!(!Condition::contains(Policy1).satisfy(&[].into()));
+        assert!(!Condition::contains(Policy1).satisfy(&[Policy2].into()));
     }
 
     #[test]
     fn any_should_satisfy() {
-        let check_ps: PolicySet<_> = vec![Policy1, Policy2].into();
-        assert!(Condition::any(vec![Policy1]).satisfy(&check_ps));
-        assert!(Condition::any(vec![Policy2]).satisfy(&check_ps));
-        assert!(Condition::any(vec![Policy1, Policy2]).satisfy(&check_ps));
-        assert!(Condition::any(vec![Policy1, Policy2, Policy3]).satisfy(&check_ps));
+        let check_ps: PolicySet<_> = [Policy1, Policy2].into();
+        assert!(Condition::any([Policy1]).satisfy(&check_ps));
+        assert!(Condition::any([Policy2]).satisfy(&check_ps));
+        assert!(Condition::any([Policy1, Policy2]).satisfy(&check_ps));
+        assert!(Condition::any([Policy1, Policy2, Policy3]).satisfy(&check_ps));
     }
 
     #[test]
     fn any_should_not_satisfy() {
-        assert!(!Condition::any(vec![]).satisfy(&vec![].into()));
-        assert!(!Condition::any(vec![]).satisfy(&vec![Policy1].into()));
-        assert!(!Condition::any(vec![]).satisfy(&vec![Policy1, Policy2].into()));
+        assert!(!Condition::any([]).satisfy(&[].into()));
+        assert!(!Condition::any([]).satisfy(&[Policy1].into()));
+        assert!(!Condition::any([]).satisfy(&[Policy1, Policy2].into()));
 
-        assert!(!Condition::any(vec![Policy1]).satisfy(&vec![].into()));
-        assert!(!Condition::any(vec![Policy1, Policy2]).satisfy(&vec![].into()));
+        assert!(!Condition::any([Policy1]).satisfy(&[].into()));
+        assert!(!Condition::any([Policy1, Policy2]).satisfy(&[].into()));
 
-        assert!(!Condition::any(vec![Policy1]).satisfy(&vec![Policy2].into()));
-        assert!(!Condition::any(vec![Policy1]).satisfy(&vec![Policy2, Policy3].into()));
+        assert!(!Condition::any([Policy1]).satisfy(&[Policy2].into()));
+        assert!(!Condition::any([Policy1]).satisfy(&[Policy2, Policy3].into()));
     }
 
     #[test]
     fn all_should_satisfy() {
-        assert!(Condition::all(vec![Policy1]).satisfy(&vec![Policy1].into()));
-        assert!(Condition::all(vec![Policy1, Policy2]).satisfy(&vec![Policy1, Policy2].into()));
+        assert!(Condition::all([Policy1]).satisfy(&[Policy1].into()));
+        assert!(Condition::all([Policy1, Policy2]).satisfy(&[Policy1, Policy2].into()));
         assert!(
-            Condition::all(vec![Policy1, Policy2]).satisfy(&vec![Policy1, Policy2, Policy3].into())
+            Condition::all([Policy1, Policy2]).satisfy(&[Policy1, Policy2, Policy3].into())
         );
 
-        assert!(Condition::all(vec![]).satisfy(&vec![].into()));
-        assert!(Condition::all(vec![]).satisfy(&vec![Policy1].into()));
-        assert!(Condition::all(vec![]).satisfy(&vec![Policy1, Policy2].into()));
+        assert!(Condition::all([]).satisfy(&[].into()));
+        assert!(Condition::all([]).satisfy(&[Policy1].into()));
+        assert!(Condition::all([]).satisfy(&[Policy1, Policy2].into()));
     }
 
     #[test]
     fn all_should_not_satisfy() {
-        assert!(!Condition::all(vec![Policy1]).satisfy(&vec![].into()));
-        assert!(!Condition::all(vec![Policy1, Policy2]).satisfy(&vec![].into()));
+        assert!(!Condition::all([Policy1]).satisfy(&[].into()));
+        assert!(!Condition::all([Policy1, Policy2]).satisfy(&[].into()));
 
-        assert!(!Condition::all(vec![Policy1, Policy2]).satisfy(&vec![Policy1].into()));
-        assert!(!Condition::all(vec![Policy1, Policy2]).satisfy(&vec![Policy2].into()));
-        assert!(!Condition::all(vec![Policy1, Policy2]).satisfy(&vec![Policy2, Policy3].into()));
+        assert!(!Condition::all([Policy1, Policy2]).satisfy(&[Policy1].into()));
+        assert!(!Condition::all([Policy1, Policy2]).satisfy(&[Policy2].into()));
+        assert!(!Condition::all([Policy1, Policy2]).satisfy(&[Policy2, Policy3].into()));
     }
 }

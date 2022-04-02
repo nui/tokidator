@@ -80,6 +80,10 @@ impl<P: Policy> PolicySet<P> {
         }
     }
 
+    pub fn from_slice(src: &[P]) -> Self {
+        src.iter().copied().collect()
+    }
+
     pub(crate) fn inner(&self) -> &BTreeSet<P> {
         &self.0
     }
@@ -93,6 +97,12 @@ impl<T: Ord> FromIterator<T> for PolicySet<T> {
 
 impl<T: Ord> From<Vec<T>> for PolicySet<T> {
     fn from(vec: Vec<T>) -> Self {
+        Self::from_iter(vec)
+    }
+}
+
+impl<T: Ord, const N: usize> From<[T; N]> for PolicySet<T> {
+    fn from(vec: [T; N]) -> Self {
         Self::from_iter(vec)
     }
 }

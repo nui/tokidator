@@ -1,6 +1,6 @@
 use crate::crypto::{PrivateKey, PublicKey};
 
-const SEPARATOR: &str = ".";
+const SEPARATOR: char = '.';
 
 pub struct SignedMessage {
     message: Vec<u8>,
@@ -9,10 +9,15 @@ pub struct SignedMessage {
 
 impl SignedMessage {
     pub fn encode(&self) -> String {
-        fn b64enc(input: &[u8]) -> String {
-            base64::encode_config(input, base64::URL_SAFE_NO_PAD)
+        fn base64_encode_buf(input: &[u8], buf: &mut String) {
+            base64::encode_config_buf(input, base64::URL_SAFE_NO_PAD, buf)
         }
-        [b64enc(&self.message), b64enc(&self.signature)].join(SEPARATOR)
+        let Self { message, signature } = self;
+        let mut output = String::with_capacity(self.get_encoded_len());
+        base64_encode_buf(message, &mut output);
+        output.push(SEPARATOR);
+        base64_encode_buf(signature, &mut output);
+        output
     }
 
     pub fn create(message: Vec<u8>, key: &PrivateKey) -> Self {
@@ -43,6 +48,17 @@ impl SignedMessage {
             _ => None,
         }
     }
+
+    fn get_encoded_len(&self) -> usize {
+        SEPARATOR.len_utf8()
+            + url_safe_no_pad_len(&self.message)
+            + url_safe_no_pad_len(&self.signature)
+    }
+}
+
+fn url_safe_no_pad_len(input: &[u8]) -> usize {
+    let x = input.len() * 4;
+    (x / 3) + (((x % 3) > 0) as usize)
 }
 
 #[cfg(test)]

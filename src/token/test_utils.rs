@@ -31,16 +31,16 @@ impl PolicyAccessToken for TestAccessToken {
 
     fn to_bytes(&self) -> Vec<u8> {
         let policies = self.policies.to_bytes();
-        let mut builder = crate::protos::TestAccessToken::new();
-        builder.set_policies(policies);
-        builder.set_expired(self.expired);
+        let mut builder = crate::protos::token::TestAccessToken::new();
+        builder.policies = policies;
+        builder.expired = self.expired;
         builder
             .write_to_bytes()
             .expect("Fail build bytes from test policy")
     }
 
     fn from_bytes(buf: &[u8]) -> Result<Self, Self::Error> {
-        let token = crate::protos::TestAccessToken::parse_from_bytes(buf).map_err(drop)?;
+        let token = crate::protos::token::TestAccessToken::parse_from_bytes(buf).map_err(drop)?;
         let ps = PolicySet::parse_from_bytes(token.policies.as_slice())
             .expect("Bad encoded test policies");
         Ok(Self::new(ps, token.expired))

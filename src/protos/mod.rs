@@ -1,3 +1,3 @@
-pub use token::*;
+// @generated
 
-mod token;
+pub mod token;

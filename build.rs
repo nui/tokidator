@@ -1,13 +1,10 @@
-use protobuf_codegen_pure::{Codegen, Customize};
+use protobuf_codegen::Codegen;
 
 fn main() {
     if let Err(e) = Codegen::new()
         .out_dir("src/protos")
         .inputs(&["protos/token.proto"])
         .includes(&["protos"])
-        .customize(Customize {
-            ..Default::default()
-        })
         .run()
     {
         println!(

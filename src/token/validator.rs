@@ -9,6 +9,7 @@ use super::{PolicyAccessToken, ToTokenStr};
 
 pub struct ValidationAuthority<A> {
     public_key: PublicKey,
+    // TODO: This struct doesn't really own access token, we should refactor this.
     _p: PhantomData<A>,
 }
 

@@ -13,19 +13,19 @@ pub fn json_discriminant_array_to_vec<T: FromPrimitive>(unparsed: &str) -> Resul
 
 #[cfg(test)]
 mod tests {
-    use crate::rbac::test_helpers::TestPolicy::{self, *};
+    use crate::rbac::test_helpers::TestPermission::{self, *};
 
     use super::*;
 
     #[test]
     fn test_json_discriminant_array_to_vec() {
         let unparsed = "[0, 2, 5, 8]";
-        let actual = json_discriminant_array_to_vec::<TestPolicy>(unparsed).expect("Vec of Policy");
-        assert_eq!(actual, vec![Policy0, Policy2, Policy5, Policy8]);
+        let actual = json_discriminant_array_to_vec::<TestPermission>(unparsed).expect("Vec of Permissions");
+        assert_eq!(actual, vec![Permission0, Permission2, Permission5, Permission8]);
 
         let unparsed = "[1, 3, 999]";
         let actual =
-            json_discriminant_array_to_vec::<TestPolicy>(unparsed).expect_err("should error");
+            json_discriminant_array_to_vec::<TestPermission>(unparsed).expect_err("should error");
         assert_eq!(actual, "999");
     }
 }

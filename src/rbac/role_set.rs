@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::iter::FromIterator;
 
 use crate::rbac::traits::Role;
-use crate::rbac::PolicySet;
+use crate::rbac::PermissionSet;
 
 #[derive(Default)]
 pub struct RoleSet<R: Role>(BTreeSet<R>);
@@ -12,12 +12,12 @@ impl<R: Role> RoleSet<R> {
         Self(Default::default())
     }
 
-    pub fn to_policy_set(&self) -> PolicySet<R::Policy> {
+    pub fn to_permission_set(&self) -> PermissionSet<R::Permission> {
         self.0
             .iter()
-            .map(Role::policies)
-            .fold(PolicySet::new(), |mut acc, policies| {
-                acc.extend(policies.iter().copied());
+            .map(Role::permissions)
+            .fold(PermissionSet::new(), |mut acc, permissions| {
+                acc.extend(permissions.iter().copied());
                 acc
             })
     }
@@ -42,9 +42,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_role_set_to_policy_set() {
+    fn test_role_set_to_permission_set() {
         let mut rs: RoleSet<TestRole> = RoleSet::new();
         rs.0.insert(TestRole::Role0);
-        assert_eq!(rs.to_policy_set().inner().len(), 2);
+        assert_eq!(rs.to_permission_set().inner().len(), 2);
     }
 }

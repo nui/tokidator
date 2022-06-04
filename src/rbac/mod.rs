@@ -1,14 +1,14 @@
-pub use policy_condition::PolicyCondition;
-pub use policy_set::PolicySet;
+pub use permission_set::PermissionSet;
+pub use predicate::Predicate;
 pub use role_set::RoleSet;
-pub use traits::{Policy, Role};
+pub use traits::{Permission, Role};
 pub use utils::json_discriminant_array_to_vec;
 
 #[cfg(test)]
-pub mod test_helpers;
+pub(crate) mod test_helpers;
 
-mod policy_condition;
-mod policy_set;
+mod permission_set;
+mod predicate;
 mod role_set;
 mod traits;
 mod utils;

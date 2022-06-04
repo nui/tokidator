@@ -1,8 +1,8 @@
-pub use traits::{PolicyAccessToken, ToTokenStr};
-pub use validator::{AccessEnforcer, ValidationAuthority};
+pub use traits::AccessToken;
+pub use validator::{TokenValidator, ValidationConfig};
 
 #[cfg(test)]
-pub mod test_utils;
+pub(crate) mod test_utils;
 
 mod traits;
 mod validator;

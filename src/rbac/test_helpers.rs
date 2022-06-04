@@ -18,26 +18,26 @@ use crate::rbac::traits::Role;
     strum::EnumCount,
 )]
 #[repr(u16)]
-pub enum TestPolicy {
-    Policy0,
-    Policy1,
-    Policy2,
-    Policy3,
-    Policy4,
-    Policy5,
-    Policy6,
-    Policy7,
-    Policy8,
-    Policy9,
-    Policy10,
-    Policy11,
-    Policy12,
-    Policy13,
-    Policy14,
-    Policy15,
+pub enum TestPermission {
+    Permission0,
+    Permission1,
+    Permission2,
+    Permission3,
+    Permission4,
+    Permission5,
+    Permission6,
+    Permission7,
+    Permission8,
+    Permission9,
+    Permission10,
+    Permission11,
+    Permission12,
+    Permission13,
+    Permission14,
+    Permission15,
 }
 
-impl crate::rbac::Policy for TestPolicy {}
+impl crate::rbac::Permission for TestPermission {}
 
 #[derive(
     Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, num_derive::FromPrimitive, strum::Display,
@@ -49,22 +49,22 @@ pub enum TestRole {
 }
 
 impl Role for TestRole {
-    type Policy = TestPolicy;
+    type Permission = TestPermission;
 
-    fn policies(&self) -> &[Self::Policy] {
-        POLICIES.get(self).map(Vec::as_slice).unwrap_or_default()
+    fn permissions(&self) -> &[Self::Permission] {
+        PERMISSIONS.get(self).map(Vec::as_slice).unwrap_or_default()
     }
 }
 
-type RolePoliciesMap = BTreeMap<TestRole, Vec<TestPolicy>>;
+type RolePermissionsMap = BTreeMap<TestRole, Vec<TestPermission>>;
 
-static POLICIES: Lazy<RolePoliciesMap> = Lazy::new(create_role_policies);
+static PERMISSIONS: Lazy<RolePermissionsMap> = Lazy::new(create_role_permissions);
 
-fn create_role_policies() -> RolePoliciesMap {
-    use TestPolicy::*;
+fn create_role_permissions() -> RolePermissionsMap {
+    use TestPermission::*;
     use TestRole::*;
-    let mut map = RolePoliciesMap::new();
-    map.insert(Role0, vec![Policy0, Policy1]);
-    map.insert(Role2, vec![Policy3, Policy4]);
+    let mut map = RolePermissionsMap::new();
+    map.insert(Role0, vec![Permission0, Permission1]);
+    map.insert(Role2, vec![Permission3, Permission4]);
     map
 }

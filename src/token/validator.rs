@@ -49,10 +49,8 @@ impl TokenValidator {
         let access_token =
             A::from_bytes(signed_message.message()).map_err(|_| InvalidAccessToken)?;
 
-        if config.check_expiration {
-            if access_token.is_expired() {
-                return Err(ExpiredAccessToken);
-            }
+        if config.check_expiration && access_token.is_expired() {
+            return Err(ExpiredAccessToken);
         }
 
         Ok(access_token)

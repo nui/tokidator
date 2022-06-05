@@ -100,9 +100,19 @@ impl SignedMessage {
 ///
 /// note: `n * 8 / 6` is equal to `n * 4 / 3`.
 const fn url_safe_no_pad_len(input: &[u8]) -> usize {
-    let x = input.len() * 4;
-    // TODO: Refactor to `x.div_ceil(3)` when it got stabilized
-    (x / 3) + ((x % 3 > 0) as usize)
+    // TODO: Refactor to `(input.len() * 4).div_ceil(3)` when it got stabilized
+    div_ceil(input.len() * 4, 3)
+}
+
+/// Copied from std implementation
+const fn div_ceil(lhs: usize, rhs: usize) -> usize {
+    let d = lhs / rhs;
+    let r = lhs % rhs;
+    if r > 0 {
+        d + 1
+    } else {
+        d
+    }
 }
 
 #[cfg(test)]

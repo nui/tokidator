@@ -93,9 +93,16 @@ impl SignedMessage {
     }
 }
 
-fn url_safe_no_pad_len(input: &[u8]) -> usize {
+/// Calculate perfect base64 encoded size
+///
+/// Each base64 character can store 6 bits. One byte use 8 bits.
+/// Total number of required bytes is `n * 8 / 6`
+///
+/// note: `n * 8 / 6` is equal to `n * 4 / 3`.
+const fn url_safe_no_pad_len(input: &[u8]) -> usize {
     let x = input.len() * 4;
-    (x / 3) + (((x % 3) > 0) as usize)
+    // TODO: Refactor to `x.div_ceil(3)` when it got stabilized
+    (x / 3) + ((x % 3 > 0) as usize)
 }
 
 #[cfg(test)]
@@ -135,5 +142,19 @@ pub mod tests {
             .expect("valid encoded");
         let public_key = PublicKey::from_base64(&get_test_public_key()).unwrap();
         assert!(sm.verify(&public_key));
+    }
+
+    #[test]
+    fn verify_url_safe_no_pad_len() {
+        let bytes: &[u8] = &[0, 0, 0, 0, 0, 0, 0, 0];
+        assert_eq!(url_safe_no_pad_len(&bytes[..0]), 0);
+        assert_eq!(url_safe_no_pad_len(&bytes[..1]), 2);
+        assert_eq!(url_safe_no_pad_len(&bytes[..2]), 3);
+        assert_eq!(url_safe_no_pad_len(&bytes[..3]), 4);
+        assert_eq!(url_safe_no_pad_len(&bytes[..4]), 6);
+        assert_eq!(url_safe_no_pad_len(&bytes[..5]), 7);
+        assert_eq!(url_safe_no_pad_len(&bytes[..6]), 8);
+        assert_eq!(url_safe_no_pad_len(&bytes[..7]), 10);
+        assert_eq!(url_safe_no_pad_len(&bytes[..8]), 11);
     }
 }

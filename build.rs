@@ -1,6 +1,11 @@
-use protobuf_codegen::Codegen;
-
 fn main() {
+    codegen();
+}
+
+#[cfg(test)]
+fn codegen() {
+    use protobuf_codegen::Codegen;
+
     if let Err(err) = Codegen::new()
         .pure()
         .out_dir("src/protos")
@@ -14,3 +19,6 @@ fn main() {
         );
     }
 }
+
+#[cfg(not(test))]
+fn codegen() {}
